@@ -1,0 +1,17 @@
+.logbox-ul {
+  margin: 2rem auto;
+  text-align: left;
+  display: inline-block;
+  list-style-type: none;
+  margin:5px;
+}
+.logbox-div {
+  margin-left: 5%;
+  width: 90%;
+  height:300px;
+  overflow-y:auto;
+  color: azure;
+  background-color: gray;
+  position: fixed;
+  bottom: 2%;
+}
