@@ -17,20 +17,38 @@ class Graph extends React.Component {
     this.svgID = this.props.svg
     this.state = {
       onSelectComponent: true,
-      data: [
-        {
-          type: 'database',
-        },
-        {
-          type: 'cloud',
-        }
-      ]
+      // data: {
+      //   nodes: [
+      //     {
+      //       id: 0,
+      //       type: 'database',
+      //       x: 0, y: 0,
+      //     },
+      //     {
+      //       id: 1
+      //       type: 'cloud',
+      //       x: 0, y: 0,
+      //     }
+      //   ],
+      //   lines: [
+      //     {source:1, target:0}
+      //   ]
+      // }
     }
+    if (!this.data) {
+      this.data = this.props.data
+    } else {
+      this.data = this.data.length == this.props.data.length ? this.data : this.props.data
+    }
+    this.links = [
+      {source:1, target:0}
+    ]
   }
+  
   componentDidMount() {
-    // this.drawGraph()
+    this.drawGraph()
   }
-
+  
   initDefineSymbol () {
     let defs = this.container.append('svg:defs')
     
@@ -46,15 +64,18 @@ class Graph extends React.Component {
         .attr('href', `${cloud}`)
   }
   initNode () {
+    console.log(this.data)
     this.nodes = this.container.selectAll('.node')
-      .data(this.state.data).enter()
+      .data(this.data).enter()
       .append('g')
       .attr('class', 'node')
-      // .attr('transform', 'translate(20, 20)')
+      .attr('id', (d, i)=>`node-${d.id}`)
+      .attr('transform', (d)=>`translate(${d.x}, ${d.y})`)
       .call(d3.drag()
-        .on('drag', function (event, d) {
+      .on('drag', function(event, d) {
+          [d.x, d.y] = [event.x, event.y]
           d3.select(this).attr('transform', `translate(${event.x}, ${event.y})`)
-        })
+      })
       )
       .on('click', function () {
       })
@@ -82,7 +103,38 @@ class Graph extends React.Component {
         return -this.getBBox().height / 2
       })
   }
-  drawGraph()  {
+
+  drawLines() {
+    const genLinkPath = (d)=> {
+      let sx = this.data[d.source].x;
+      let tx = this.data[d.target].x;
+      let sy = this.data[d.source].y;
+      let ty = this.data[d.target].y;
+      return 'M' + sx + ',' + sy +
+        ' L' + tx + ',' + ty
+    }
+    if (this.lines) {
+      this.lines.selectAll('.link')
+        .attr(
+          'd', link => genLinkPath(link),
+        )
+    } else {
+      this.lines = this.container.append('g')
+      this.lines.selectAll('.link')
+        .data(this.links)
+        .enter()
+        .append('path')
+        .attr('class', 'link')
+        .attr(
+          'd', link => genLinkPath(link),
+        ).attr(
+          'id', (link, i) => 'link-' + i
+        )
+    }
+    
+  }
+
+  drawGraph() {
     this.svg = d3.select(`#${this.svgID}`)
       .append('svg')
       .attr('id', `${this.svgID}canvas`)
@@ -90,20 +142,23 @@ class Graph extends React.Component {
       .attr('height', SVGheight)
       .style('border', '1px solid black')
     this.container = this.svg.append('g')
+    this.container.attr('id', 'canvas-container')
     this.initDefineSymbol()
     this.initNode()
+    this.drawLines()
   }
   render() {
+    
     return(
       <div id={this.svgID}>
-        <Modal show={true}>
+        {/* <Modal show={true}>
         <Modal.Header closeButton>
           <Modal.Title>Modal heading</Modal.Title>
         </Modal.Header>
         <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
         <Modal.Footer>
         </Modal.Footer>
-        </Modal>
+        </Modal> */}
       </div>
     )
   }
